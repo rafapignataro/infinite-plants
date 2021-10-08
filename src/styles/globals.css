@@ -5,10 +5,16 @@
 }
 
 html,
-body {
-  background-color: #ecf0f1;
+body,
+#__next {
   height: 100vh;
   width: 100vw;
+  font-size: 16px;
+}
+
+body {
+  background-color: #ecf0f1;
+  font-family: 'Roboto', sans-serif;
 }
 
 a {
@@ -17,8 +23,15 @@ a {
 }
 
 .game-container {
+  height: 100%;
+
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+
+.game-container h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
 }
