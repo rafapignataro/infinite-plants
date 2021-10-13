@@ -1,5 +1,25 @@
 import * as THREE from 'three';
 
+interface Plant {
+  axiom: string;
+  rules: any;
+}
+
+// F -> Draw line (line, translate)
+// G -> Move foward (translate)
+// + -> Turn right (rotate)
+// - -> Turn left (rotate)
+// [ -> Save state (push matrix)
+// ] -> End state (pop matrix)
+
+const plant: Plant = {
+  axiom: 'F',
+  rules: {
+    'F': 'F[F]-F',
+  }
+}
+
+
 export const setupGame = () => {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, 1280/720, 0.1, 1000);
@@ -7,24 +27,44 @@ export const setupGame = () => {
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(854, 480);
 
-  const Cube = (color: string) => {
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshBasicMaterial({ color });
-    const cube = new THREE.Mesh(geometry, material);
-    
-    scene.add(cube);
+  // 'A'
+  let result = plant.axiom;
 
-    return cube;
+  // Generations loop
+  for (let generation = 1; generation <= 3; generation++) {
+    let newString = '';
+    for (let index = 0; index < result.length; index++) {
+      const letter = result[index];
+
+      newString += plant.rules[letter] || letter;
+    }    
+
+    result = newString;
+    console.log('Generation: ', generation, 'String : ', result);
   }
+
+  const drawList = [];
+
+  // Draw loop
+  for (let letter = 1; letter <= result.length; letter++) {
+    switch(result[letter]) {
+      case 'F': drawList.push('line');
+      case '+': drawList.push('right');
+      case '-': drawList.push('left');
+    }
+  }
+
+  console.log(drawList);
+
 
   const Line = () => {
     const material = new THREE.LineBasicMaterial({ color: '#686de0' });
 
     const points = [];
-    points.push(new THREE.Vector3( 0, 0, 0 ));
-    points.push(new THREE.Vector3( 2.5, 0, 0 ));
-    points.push(new THREE.Vector3( 1.25, 2.5, 0 ));
-    points.push(new THREE.Vector3( 0, 0, 0 ));
+
+    points.push(new THREE.Vector3(0, 0, 0));
+    points.push(new THREE.Vector3(2, 0, 0));
+    points.push(new THREE.Vector3(2, 3, 0));
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
@@ -34,8 +74,6 @@ export const setupGame = () => {
 
     return line;
   }
-
-  const cube = Cube('#e84393');
 
   const line = Line();
   
@@ -48,12 +86,6 @@ export const setupGame = () => {
   const animate = () => {
     requestAnimationFrame(animate);
     renderer.render( scene, camera );
-  
-    cube.rotation.y += 0.01;  
-    cube.rotation.x -= 0.01;
-
-    line.rotation.y += 0.01;
-    line.rotation.x += 0.01;
   }
 
   animate();
