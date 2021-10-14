@@ -3,6 +3,7 @@ import * as THREE from 'three';
 interface Plant {
   axiom: string;
   rules: any;
+  angle: number;
 }
 
 // F -> Draw line (line, translate)
@@ -14,8 +15,9 @@ interface Plant {
 
 const plant: Plant = {
   axiom: 'F',
+  angle: Math.PI / 4,
   rules: {
-    'F': 'F[F]-F',
+    'F': 'FF-[F+F+F]+[+F-F-F]',
   }
 }
 
@@ -54,29 +56,53 @@ export const setupGame = () => {
     }
   }
 
-  console.log(drawList);
 
+  let ANGLE = Math.PI * 0;
+  let SIZE = 3;
 
-  const Line = () => {
-    const material = new THREE.LineBasicMaterial({ color: '#686de0' });
-
+  let generation = 0;
+  
+  const Branch = ({ x, y, z }: any, size: number, angle: number) => {
     const points = [];
+    generation++;
 
-    points.push(new THREE.Vector3(0, 0, 0));
-    points.push(new THREE.Vector3(2, 0, 0));
-    points.push(new THREE.Vector3(2, 3, 0));
+    const originPoint = new THREE.Vector3(x, y, z);
+
+    const y1 = Math.cos(angle) * size;
+    const x1 = Math.sin(angle) * size;
+
+    const finalPoint = new THREE.Vector3(x1 + x, y1 + y, z);
+
+    points.push(originPoint);
+    points.push(finalPoint);
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({ 
+      color: '#e17055',
+    });
+    const branch = new THREE.Line(geometry, material);
+    
+    scene.add(branch);
 
-    const line = new THREE.Line(geometry, material);
+    const random1 = Math.PI / (Math.floor(Math.random() * 10)  + 4)
+    const random2 = Math.PI / (Math.floor(Math.random() * 10)  + 4)
 
-    scene.add(line);
-
-    return line;
+    if(size > 0.1) {
+      Branch({
+        x: x1 + x,
+        y: y1 + y,
+        z: 0
+      }, size / 2, (angle + random1))
+      Branch({
+        x: x1 + x,
+        y: y1 + y,
+        z: 0
+      }, size / 2, (angle - random2))
+    }
   }
 
-  const line = Line();
-  
+  Branch({ x: 0, y: -3.5, z: 0 }, SIZE, ANGLE)
+
   camera.position.z = 5;
 
   const gameContainer = document.querySelector('.game-container');
@@ -85,7 +111,7 @@ export const setupGame = () => {
 
   const animate = () => {
     requestAnimationFrame(animate);
-    renderer.render( scene, camera );
+    renderer.render(scene, camera);
   }
 
   animate();
