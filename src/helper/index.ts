@@ -1,5 +1,11 @@
 import * as THREE from 'three';
 
+type Position = {
+  x: number;
+  y: number;
+  z: number
+}
+
 const generateSentence = (axiom: string, generations: number, rules: any) => {
   let sentence = axiom;
 
@@ -38,29 +44,30 @@ export const setupGame = () => {
   const RULES: any = { 'F' : 'FF-[-F+F+F]+[+F-F-F]' };
   const LENGTH = 3;
 
-  const SENTENCE = generateSentence(AXIOM, 2, RULES);
+  const SENTENCE = generateSentence(AXIOM, 4, RULES);
+  console.log(SENTENCE)
   // Criar um array do helper position e helper angle
   
-  const Branch = (origin: { x: number, y: number, z: number }, length: number, angle: number) => {
-    let BRANCHING = false;
+  const Branch = (origin: Position, length: number, angle: number) => {
     let ACTUAL_ANGLE = 0;
-    let HELPER_ANGLE = 0;
     let ACTUAL_POSITION = origin;
-    let HELPER_POSITION = ACTUAL_POSITION;
-    let ANGLE_STACK = [];
-    let POSITION_STACK = [];
+    const STATE_STACK: { position: Position, angle: number}[] = [];
+    // let STATE_STACK = F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F;
 
     for (let index = 0; index < SENTENCE.length; index++) {
       const letter = SENTENCE[index];
-  
+      
+      const stack_branch = STATE_STACK[STATE_STACK.length - 1];
+      
       switch(letter) {
         case 'F': {
           const branchPoints = [];
 
-          const initialPosition = BRANCHING ? HELPER_POSITION : ACTUAL_POSITION;
+          if(stack_branch) console.log('position', stack_branch.position)
+          const initialPosition = stack_branch ? stack_branch.position : ACTUAL_POSITION;
           const finalPosition = { 
-            x: Math.sin(BRANCHING ? HELPER_ANGLE : ACTUAL_ANGLE) * length + initialPosition.x, 
-            y: Math.cos(BRANCHING ? HELPER_ANGLE : ACTUAL_ANGLE) * length + initialPosition.y, 
+            x: Math.sin(stack_branch ? stack_branch.angle : ACTUAL_ANGLE) * length + initialPosition.x, 
+            y: Math.cos(stack_branch ? stack_branch.angle : ACTUAL_ANGLE) * length + initialPosition.y, 
             z: 0 
           };
           
@@ -74,43 +81,47 @@ export const setupGame = () => {
           
           scene.add(branch);
           
-          if(BRANCHING) {
-            HELPER_POSITION = finalPosition;
+          if(stack_branch) {
+            stack_branch.position = finalPosition;
           } else {
             ACTUAL_POSITION = finalPosition;
           }
           break;
         }
         case '+': {
-          if(BRANCHING) {
-            HELPER_ANGLE += angle;
-            ANGLE_STACK.push(HELPER_ANGLE);
+          if(stack_branch) {
+            console.log('B+', stack_branch.angle)
+            stack_branch.angle += angle;
           } else {
             ACTUAL_ANGLE += angle;
           }
           break;
         }
         case '-': {
-          if(BRANCHING) {
-            HELPER_ANGLE -= angle;
-            ANGLE_STACK.push(HELPER_ANGLE);
+          if(stack_branch) {
+            console.log('B-', stack_branch.angle)
+            stack_branch.angle -= angle;
           } else {
             ACTUAL_ANGLE -= angle;
           }
           break;
         }
         case '[': {
-          BRANCHING = true;
-          HELPER_POSITION = ACTUAL_POSITION;
+
+          STATE_STACK.push({ 
+            position: stack_branch ? stack_branch.position : ACTUAL_POSITION, 
+            angle: stack_branch ? stack_branch.angle : ACTUAL_ANGLE 
+          })
           break;
         }
         case ']': {
-          BRANCHING = false;
-          HELPER_POSITION = ACTUAL_POSITION;
-          HELPER_ANGLE = 0;
+          STATE_STACK.pop()
           break;
         }
       }
+
+      console.log('INDEX', index)
+      console.log('STATE_STACK', STATE_STACK.length, STATE_STACK)
     }
   }
     
