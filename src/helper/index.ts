@@ -35,16 +35,17 @@ const getRandomColor = () =>{
 
 const stackColorHelper = (number: number) => {
   switch(number) {
-    case 0: return '#16a085';
-    case 1: return '#27ae60';
-    case 2: return '#1abc9c';
-    case 3: return '#2ecc71';
-    case 4: return '#8e44ad';
-    case 5: return '#9b59b6';
-    case 6: return 'white';
-    case 7: return '#c0392b';
-    case 8: return '#e74c3c';
+    case 0: return '#832A0D';
+    case 1: return '#832A0D';
+    case 2: return '#832A0D';
+    case 3: return '#832A0D';
+    case 4: return '#832A0D';
+    case 5: return '#832A0D';
+    case 6: return 'green';
+    case 7: return 'purple';
+    case 8: return '#c0392b';
     case 9: return 'white';
+    default: return '#fff';
   }
 }
 
@@ -59,31 +60,57 @@ export const setupGame = () => {
   const controls = new OrbitControls(camera, renderer.domElement);
 
   const AXIOM = 'X';
-  const BASE_ANGLE = - Math.PI / 14.4;
-  const RULES: any = { 'X': 'F+[[X]-X]-F[-FX]+X', 'F': 'FF' };
-  const LENGTH = 1;
+  const BASE_ANGLE = - Math.PI / 6;
+  const RULES: any = { 'X': 'F[-F[-X]][-F[-X]][-F[-X]]', 'F': 'FF'};
+  const LENGTH = 5;
 
-  const SENTENCE = generateSentence(AXIOM, 6, RULES);
+  const SENTENCE = generateSentence(AXIOM, 7, RULES);
   console.log(SENTENCE)
 
   const Branch = (origin: Position, length: number, angle: number) => {
     let ACTUAL_ANGLE = 0;
     let ACTUAL_POSITION = origin;
-    const STATE_STACK: { id: number, position: Position, angle: number}[] = [];
-    // let STATE_STACK = F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F]F[+F]F[-F]F[+F[+F]F[-F]F]F[+F]F[-F]F[-F[+F]F[-F]F]F[+F]F[-F]F
+    let ACTUAL_ROTATION_ANGLE = 0;
+    const STATE_STACK: { id: number, position: Position, angle: number, rotation_angle: number}[] = [];
 
     for (let index = 0; index < SENTENCE.length; index++) {
       const letter = SENTENCE[index];
       
       const stack_branch = STATE_STACK[STATE_STACK.length - 1];
-      if(!stack_branch) console.log('-- TRONCO --')
       const initialAngle = stack_branch ? stack_branch.angle : ACTUAL_ANGLE;
+      const rotationAngle = stack_branch ? stack_branch.rotation_angle : ACTUAL_ROTATION_ANGLE;
       const initialPosition = stack_branch ? stack_branch.position : ACTUAL_POSITION;
-      const finalPosition = { 
-        x: Math.sin(initialAngle) * length + initialPosition.x, 
-        y: Math.cos(initialAngle) * length + initialPosition.y, 
-        z: 0 
-      };
+
+      const { x: finalX, z: finalZ } = ((rotationAngle: number, length: number) => {
+        if(rotationAngle === 0) return { x: length, z: 0 };
+        if(rotationAngle === 90) return { x: 0, z: 1 };
+        if(rotationAngle === 180) return { x: -length, z: 0 };
+        if(rotationAngle === 270) return { x: 0, z: 1 };
+        
+        const z = Math.sin(rotationAngle) * length;
+        const x = Math.cos(rotationAngle) * length;
+
+        if(rotationAngle < 90) return { z, x }
+
+        if(rotationAngle < 180 && rotationAngle > 90) return { z, x: x * -1 }
+
+        if(rotationAngle < 270 && rotationAngle > 180) return { z: z * -1, x: x * -1 }
+
+        if(rotationAngle < 360 && rotationAngle > 270) return { z: z * -1, x }
+
+        return { z: z * -1, x }
+      })(rotationAngle, length)
+
+      let finalPosition = {
+        x: 0,
+        y: Math.cos(initialAngle) * length + initialPosition.y,
+        z: 0
+      }
+
+      if(stack_branch) {
+        finalPosition.x = finalX + initialPosition.x;
+        finalPosition.z = finalZ + initialPosition.z;
+      }
 
       switch(letter) {
         case 'F': {
@@ -100,7 +127,7 @@ export const setupGame = () => {
           setTimeout(() => {
             // console.log('teste', index);
             scene.add(branch)
-          }, 10 * index)
+          }, 1 * index)
           
           if(stack_branch) {
             stack_branch.position = finalPosition;
@@ -126,11 +153,13 @@ export const setupGame = () => {
           break;
         }
         case '[': {
+          const a = [0, 45, 90, 135, 180, 225, 270, 315, 360];
 
           STATE_STACK.push({ 
             id: STATE_STACK.length + 1,
             position: stack_branch ? stack_branch.position : ACTUAL_POSITION, 
-            angle: stack_branch ? stack_branch.angle : ACTUAL_ANGLE 
+            angle: stack_branch ? stack_branch.angle : ACTUAL_ANGLE,
+            rotation_angle: a[Math.floor(Math.random() * 9)]
           });
 
           // console.log(STATE_STACK.reduce((string, elt) => string += `${index}[ x:${elt.position.x.toFixed(1)}|y:${elt.position.y.toFixed(1)}|a:${elt.angle.toFixed(1)} ], `, ''))
@@ -146,9 +175,9 @@ export const setupGame = () => {
     console.log(scene)
   }
     
-  Branch({ x: 0, y: -40, z: 0 }, LENGTH, BASE_ANGLE);
+  Branch({ x: 0, y: -55, z: 0 }, LENGTH, BASE_ANGLE);
   
-  camera.position.z = 40;
+  camera.position.z = 80;
   const gameContainer = document.querySelector('.game-container');
 
   if(gameContainer) {
