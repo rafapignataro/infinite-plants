@@ -62,7 +62,7 @@ export const setupGame = () => {
   const AXIOM = 'X';
   const BASE_ANGLE = - Math.PI / 6;
   const RULES: any = { 'X': 'F[-F[-X]][-F[-X]][-F[-X]]', 'F': 'FF'};
-  const LENGTH = 5;
+  const LENGTH = 1;
 
   const SENTENCE = generateSentence(AXIOM, 7, RULES);
   console.log(SENTENCE)
