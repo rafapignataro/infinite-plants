@@ -59,13 +59,15 @@ export const setupGame = () => {
 
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  const AXIOM = 'X';
+  const GENERATIONS = 5;
+  const AXIOM = 'F';
   const BASE_ANGLE = - Math.PI / 6;
-  const RULES: any = { 'X': 'F[-F[-X]][-F[-X]][-F[-X]]', 'F': 'FF'};
-  const LENGTH = 1;
+  const RULES: any = { 'F': 'FF-[-F+F+F]+[+F-F-F]' };
+  const LENGTH = 2;
 
-  const SENTENCE = generateSentence(AXIOM, 7, RULES);
-  console.log(SENTENCE)
+  const SENTENCE = generateSentence(AXIOM, GENERATIONS, RULES);
+
+  
 
   const Branch = (origin: Position, length: number, angle: number) => {
     let ACTUAL_ANGLE = 0;
@@ -123,12 +125,8 @@ export const setupGame = () => {
           const geometry = new THREE.BufferGeometry().setFromPoints(branchPoints);
           const material = new THREE.LineBasicMaterial({ color: stackColorHelper(STATE_STACK.length) });
           const branch = new THREE.Line(geometry, material);
-          
-          setTimeout(() => {
-            // console.log('teste', index);
-            scene.add(branch)
-          }, 1 * index)
-          
+          scene.add(branch)
+        
           if(stack_branch) {
             stack_branch.position = finalPosition;
           } else {
