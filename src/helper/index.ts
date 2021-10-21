@@ -28,7 +28,8 @@ const generateSentence = (axiom: string, generations: number, rules: any) => {
 
     return sentence;
   } catch (err) {
-    console.error('Erro ao gerar sentença', err)
+    console.error('Erro ao gerar sentença', err);
+    return ''
   }
 }
 
