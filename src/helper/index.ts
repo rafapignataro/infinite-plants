@@ -97,8 +97,6 @@ export const setupGame = () => {
 
       const stack_branch = STATE_STACK[STATE_STACK.length - 1];
 
-      if(!stack_branch) console.log(BASE_BRANCH);
-
       const branch = stack_branch ? stack_branch : BASE_BRANCH;
 
       const initialPosition = branch.points[branch.points.length - 1];
