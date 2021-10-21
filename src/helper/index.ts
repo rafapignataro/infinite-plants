@@ -1,46 +1,45 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
-type Position = {
-  x: number;
-  y: number;
-  z: number
+type Branch = {
+  id: number;
+  angle: number;
+  rotationAngle: number;
+  points: THREE.Vector3[];
+  width: number;
+  color: string;
 }
 
 const generateSentence = (axiom: string, generations: number, rules: any) => {
-  let sentence = axiom;
+  try {
+    let sentence = axiom;
 
-  for (let generation = 1; generation < generations; generation++) {
-    let nextSentence = '';
+    for (let generation = 1; generation < generations; generation++) {
+      let nextSentence = '';
 
-    for (let index = 0; index < sentence.length; index++) {
-      const letter = sentence[index];
-      nextSentence += rules[letter] || letter;
-    }    
+      for (let index = 0; index < sentence.length; index++) {
+        const letter = sentence[index];
 
-    sentence = nextSentence;
+        nextSentence += rules[letter] || letter;
+      }    
+
+      sentence = nextSentence;
+    }
+
+    return sentence;
+  } catch (err) {
+    console.error('Erro ao gerar sentença', err)
   }
-
-  return sentence;
-}
-
-const getRandomColor = () =>{
-  var letters = '0123456789ABCDEF';
-  var color = '#';
-  for (var i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
 }
 
 const stackColorHelper = (number: number) => {
   switch(number) {
-    case 0: return '#832A0D';
-    case 1: return '#832A0D';
-    case 2: return '#832A0D';
-    case 3: return '#832A0D';
-    case 4: return '#832A0D';
-    case 5: return '#832A0D';
+    case 0: return '#171010';
+    case 1: return '#171010';
+    case 2: return '#211616';
+    case 3: return '#211616';
+    case 4: return '#27ae60';
+    case 5: return '#9b59b6';
     case 6: return 'green';
     case 7: return 'purple';
     case 8: return '#c0392b';
@@ -51,18 +50,18 @@ const stackColorHelper = (number: number) => {
 
 const stackSizeHelper = (number: number) => {
   switch(number) {
-    case 0: return 0.5;
-    case 1: return 0.25;
-    case 2: return 0.125;
-    case 3: return 0.1;
-    case 4: return 0.05;
-    default: return 0.01;
+    case 0: return 1;
+    case 1: return 0.8;
+    case 2: return 0.6;
+    case 3: return 0.4;
+    case 4: return 0.2;
+    default: return 0.1;
   }
 }
 
 export const setupGame = () => {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#2f3542');
+  scene.background = new THREE.Color('#fff');
   const camera = new THREE.PerspectiveCamera(70, 1280/720, 1, 1000);
 
   const renderer = new THREE.WebGLRenderer();
@@ -70,28 +69,39 @@ export const setupGame = () => {
 
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  const GENERATIONS = 5;
+  const GENERATIONS = 7;
   const AXIOM = 'F';
-  const BASE_ANGLE = - Math.PI / 18;
-  const RULES: any = { 'F': 'F[+F]F[-F][F]' };
-  const LENGTH = 2;
+  const BASE_ANGLE = Math.PI / 12;
+  const RULES: any = {
+    'F': 'F[+F]+F[-F]-[F]',
+  }
+
+  const LENGTH = 1;
 
   const SENTENCE = generateSentence(AXIOM, GENERATIONS, RULES);
 
-  const Branch = (origin: Position, length: number, angle: number) => {
-    let ACTUAL_ANGLE = 0;
-    let ACTUAL_POSITION = origin;
-    let ACTUAL_ROTATION_ANGLE = 0;
-    const STATE_STACK: { id: number, position: Position, angle: number, rotation_angle: number}[] = [];
-    
+  const Branch = (origin: THREE.Vector3, length: number, angle: number) => {
+    const STATE_STACK: Branch[] = [];
+
+    const BASE_BRANCH: Branch = {
+      id: 0,
+      angle: BASE_ANGLE,
+      rotationAngle: 0,
+      points: [origin],
+      width: (GENERATIONS / 2) - (STATE_STACK.length / 10),
+      color: stackColorHelper(STATE_STACK.length)
+    }
 
     for (let index = 0; index < SENTENCE.length; index++) {
       const letter = SENTENCE[index];
-      
+
       const stack_branch = STATE_STACK[STATE_STACK.length - 1];
-      const initialAngle = stack_branch ? stack_branch.angle : ACTUAL_ANGLE;
-      const rotationAngle = stack_branch ? stack_branch.rotation_angle : ACTUAL_ROTATION_ANGLE;
-      const initialPosition = stack_branch ? stack_branch.position : ACTUAL_POSITION;
+
+      if(!stack_branch) console.log(BASE_BRANCH);
+
+      const branch = stack_branch ? stack_branch : BASE_BRANCH;
+
+      const initialPosition = branch.points[branch.points.length - 1];
 
       const { x: finalX, z: finalZ } = ((rotationAngle: number, length: number) => {
         if(rotationAngle === 0) return { x: length, z: 0 };
@@ -111,11 +121,11 @@ export const setupGame = () => {
         if(rotationAngle < 360 && rotationAngle > 270) return { z: z * -1, x }
 
         return { z: z * -1, x }
-      })(rotationAngle, length)
+      })(branch.rotationAngle, length);
 
       let finalPosition = {
         x: 0,
-        y: Math.cos(initialAngle) * length + initialPosition.y,
+        y: Math.cos(branch.angle) * length + initialPosition.y,
         z: 0
       }
 
@@ -126,73 +136,61 @@ export const setupGame = () => {
 
       switch(letter) {
         case 'F': {
-          const branchPoints = [];
-
-          const originPoint = new THREE.Vector3(initialPosition.x, initialPosition.y, initialPosition.z);
+          // const originPoint = new THREE.Vector3(initialPosition.x, initialPosition.y, initialPosition.z);
           const finalPoint = new THREE.Vector3(finalPosition.x, finalPosition.y, finalPosition.z);
 
-          // branchPoints.push(originPoint);
-          // branchPoints.push(finalPoint);
-          // const geometry = new THREE.BufferGeometry().setFromPoints(branchPoints);
-          // const material = new THREE.LineBasicMaterial({ color: stackColorHelper(STATE_STACK.length) });
-          // const branch = new THREE.Line(geometry, material);
-          // scene.add(branch)
-          // 0,    1,   2,   3,    4, 5, 6, 7
-          // 0.5, 0.4, 0.3, 0.2 , 0.1
-          var pathBase = new THREE.LineCurve3(originPoint, finalPoint)
-          const baseBranchGeometry = new THREE.TubeGeometry(pathBase, 20, stackSizeHelper(STATE_STACK.length), 8, false);
-          const branchMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, color: stackColorHelper(STATE_STACK.length) });
-          const mesh = new THREE.Mesh(baseBranchGeometry, branchMaterial);
-          scene.add(mesh);
-        
-          if(stack_branch) {
-            stack_branch.position = finalPosition;
-          } else {
-            ACTUAL_POSITION = finalPosition;
-          }
+          branch.points.push(finalPoint);
           break;
         }
         case '+': {
-          if(stack_branch) {
-            stack_branch.angle += angle;
-          } else {
-            ACTUAL_ANGLE += angle;
-          }
+          branch.angle += angle;
           break;
         }
         case '-': {
-          if(stack_branch) {
-            stack_branch.angle -= angle;
-          } else {
-            ACTUAL_ANGLE -= angle;
-          }
+          branch.angle -= angle;
           break;
         }
         case '[': {
-          const a = [0, 45, 90, 135, 180, 225, 270, 315, 360];
+          const a = [0, 45, 90, 135, 180, 225, 270, 315];
 
-          STATE_STACK.push({ 
+          const branch = stack_branch ? stack_branch : BASE_BRANCH;
+          const branchLastPoint = branch.points[branch.points.length - 1];
+
+          const newBranch: Branch = {
+            ...branch,
             id: STATE_STACK.length + 1,
-            position: stack_branch ? stack_branch.position : ACTUAL_POSITION, 
-            angle: stack_branch ? stack_branch.angle : ACTUAL_ANGLE,
-            rotation_angle: a[Math.floor(Math.random() * 9)]
-          });
+            points: [branchLastPoint],
+            rotationAngle: a[Math.floor(Math.random() * 8)],
+            width: stackSizeHelper(STATE_STACK.length),
+            color: stackColorHelper(STATE_STACK.length)
+          }
 
-          // console.log(STATE_STACK.reduce((string, elt) => string += `${index}[ x:${elt.position.x.toFixed(1)}|y:${elt.position.y.toFixed(1)}|a:${elt.angle.toFixed(1)} ], `, ''))
+          STATE_STACK.push(newBranch);
           break;
         }
         case ']': {
-          STATE_STACK.pop()
+          const curve = new THREE.CatmullRomCurve3(STATE_STACK[STATE_STACK.length - 1].points);
+          const branchGeometry = new THREE.TubeGeometry(curve, 20, branch.width, 8, false);
+          const branchMaterial = new THREE.MeshBasicMaterial({ color: branch.color, side: THREE.DoubleSide });
+          const mesh = new THREE.Mesh(branchGeometry, branchMaterial);
+
+          scene.add(mesh)
+
+          STATE_STACK.pop();
           break;
         }
       }
     }
 
-    console.log(scene)
+    const curve = new THREE.CatmullRomCurve3(BASE_BRANCH.points);
+    const branchGeometry = new THREE.TubeGeometry(curve, 20, BASE_BRANCH.width, 8, false);
+    const branchMaterial = new THREE.MeshBasicMaterial({ color: BASE_BRANCH.color, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(branchGeometry, branchMaterial);
+
+    scene.add(mesh);
   }
 
-  Branch({ x: 0, y: -55, z: 0 }, LENGTH, BASE_ANGLE);
-  
+  Branch(new THREE.Vector3(0, -55, 0), LENGTH, BASE_ANGLE);
   
   camera.position.z = 80;
   const gameContainer = document.querySelector('.game-container');
