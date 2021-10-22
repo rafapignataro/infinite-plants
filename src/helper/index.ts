@@ -10,36 +10,179 @@ type Branch = {
   color: string;
 }
 
-const generateSentence = (axiom: string, generations: number, rules: any) => {
-  try {
-    let sentence = axiom;
+type Position = {
+  x: number;
+  y: number;
+  z: number;
+}
 
-    for (let generation = 1; generation < generations; generation++) {
+class InfinitTree {
+  private initialPosition: Position;
+  private baseBranch: Branch;
+  private branches: Branch[] = [];
+  private axiom: string;
+  private angle: number;
+  private rules: any;
+  private branchSize: number;
+  private sentence: string;
+  private generations: number;
+  private scene: THREE.Scene;
+
+  constructor(
+    initialPosition: Position, 
+    axiom: string, 
+    rules: any,
+    angle: number, 
+    branchSize: number, 
+    generations: number, 
+    scene: THREE.Scene
+  ) {
+    this.initialPosition = initialPosition;
+    this.axiom = axiom;
+    this.rules = rules;
+    this.angle = angle;
+    this.initialPosition = initialPosition;
+    this.branchSize = branchSize;
+    this.generations = generations;
+    this.scene = scene;
+
+    this.sentence = this.generateSequence();
+
+    this.baseBranch = {
+      id: 0,
+      angle: this.angle,
+      rotationAngle: 0,
+      points: [new THREE.Vector3(this.initialPosition.x, initialPosition.y, initialPosition.z)],
+      width: (this.generations / 2) - (this.branches.length / 10),
+      color: stackColorHelper(this.branches.length)
+    }
+  }
+
+  private drawBranch = (branch: Branch) => {
+    const curve = new THREE.CatmullRomCurve3(branch.points);
+    const branchGeometry = new THREE.TubeGeometry(curve, 20, branch.width, 8, false);
+    const branchMaterial = new THREE.MeshBasicMaterial({ color: branch.color, side: THREE.DoubleSide });
+    const branchMesh = new THREE.Mesh(branchGeometry, branchMaterial);
+
+    this.scene.add(branchMesh);
+  }
+
+  private generateSequence = () => {
+    let sentence = this.axiom;
+
+    for (let generation = 0; generation < this.generations; generation++) {
       let nextSentence = '';
 
-      for (let index = 0; index < sentence.length; index++) {
-        const letter = sentence[index];
+      for (let letterIndex = 0; letterIndex < sentence.length; letterIndex++) {
+        const letter = sentence[letterIndex];
 
-        nextSentence += rules[letter] || letter;
+        nextSentence += this.rules[letter] || letter;
       }    
 
       sentence = nextSentence;
     }
-
+    
+    console.log('sentence', sentence)
     return sentence;
-  } catch (err) {
-    console.error('Erro ao gerar sentença', err);
-    return ''
-  }
+  };
+
+  public grow = () => {
+    for (let index = 0; index < this.sentence.length; index++) {
+      const letter = this.sentence[index];
+
+      const stack_branch = this.branches[this.branches.length - 1];
+
+      const branch = stack_branch ? stack_branch : this.baseBranch;
+
+      const initialPosition = branch.points[branch.points.length - 1];
+
+      const { x: finalX, z: finalZ } = ((rotationAngle: number, length: number) => {
+        if(rotationAngle === 0) return { x: length, z: 0 };
+        if(rotationAngle === 90) return { x: 0, z: 1 };
+        if(rotationAngle === 180) return { x: -length, z: 0 };
+        if(rotationAngle === 270) return { x: 0, z: 1 };
+        
+        const z = Math.sin(rotationAngle) * length;
+        const x = Math.cos(rotationAngle) * length;
+
+        if(rotationAngle < 90) return { z, x }
+
+        if(rotationAngle < 180 && rotationAngle > 90) return { z, x: x * -1 }
+
+        if(rotationAngle < 270 && rotationAngle > 180) return { z: z * -1, x: x * -1 }
+
+        if(rotationAngle < 360 && rotationAngle > 270) return { z: z * -1, x }
+
+        return { z: z * -1, x }
+      })(branch.rotationAngle, this.branchSize);
+
+      let finalPosition = {
+        x: 0,
+        y: Math.cos(branch.angle) * this.branchSize + initialPosition.y,
+        z: 0
+      }
+
+      if(stack_branch) {
+        finalPosition.x = finalX + initialPosition.x;
+        finalPosition.z = finalZ + initialPosition.z;
+      }
+
+      switch(letter) {
+        case 'F': {
+          const finalPoint = new THREE.Vector3(finalPosition.x, finalPosition.y, finalPosition.z);
+
+          branch.points.push(finalPoint);
+          break;
+        }
+        case '+': {
+          branch.angle += this.angle;
+          break;
+        }
+        case '-': {
+          branch.angle -= this.angle;
+          break;
+        }
+        case '[': {
+          const a = [0, 45, 90, 135, 180, 225, 270, 315];
+
+          const branch = stack_branch ? stack_branch : this.baseBranch;
+          const branchLastPoint = branch.points[branch.points.length - 1];
+
+          const newBranch: Branch = {
+            ...branch,
+            id: this.branches.length + 1,
+            points: [branchLastPoint],
+            rotationAngle: a[Math.floor(Math.random() * 8)],
+            width: stackSizeHelper(this.branches.length),
+            color: stackColorHelper(this.branches.length)
+          }
+
+          this.branches.push(newBranch);
+          break;
+        }
+        case ']': {
+          const branch = this.branches[this.branches.length - 1];
+
+          this.drawBranch(branch);
+
+          this.branches.pop();
+          break;
+        }
+        default: console.log('A')
+      }
+    }
+
+    this.drawBranch(this.baseBranch);
+  };
 }
 
 const stackColorHelper = (number: number) => {
   switch(number) {
-    case 0: return '#171010';
-    case 1: return '#171010';
-    case 2: return '#211616';
-    case 3: return '#211616';
-    case 4: return '#27ae60';
+    case 0: return '#53350A';
+    case 1: return '#5c3a0a';
+    case 2: return '#4c6a2f';
+    case 3: return '#618A3C';
+    case 4: return '#618A3B';
     case 5: return '#9b59b6';
     case 6: return 'green';
     case 7: return 'purple';
@@ -70,126 +213,19 @@ export const setupGame = () => {
 
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  const GENERATIONS = 7;
+  const INITIAL_POSITION: Position = { x: 0, y: -35, z: 0 };
+  const GENERATIONS = 5;
   const AXIOM = 'F';
-  const BASE_ANGLE = Math.PI / 12;
+  const BASE_ANGLE = Math.PI / 10;
   const RULES: any = {
-    'F': 'F[+F]+F[-F]-[F]',
+    'F': 'FF-[-F+F+F]+[+F-F-F]',
   }
 
-  const LENGTH = 1;
+  const BRANCH_SIZE = 1;
 
-  const SENTENCE = generateSentence(AXIOM, GENERATIONS, RULES);
+  const tree = new InfinitTree(INITIAL_POSITION, AXIOM, RULES, BASE_ANGLE, BRANCH_SIZE, GENERATIONS, scene);
 
-  const Branch = (origin: THREE.Vector3, length: number, angle: number) => {
-    const STATE_STACK: Branch[] = [];
-
-    const BASE_BRANCH: Branch = {
-      id: 0,
-      angle: BASE_ANGLE,
-      rotationAngle: 0,
-      points: [origin],
-      width: (GENERATIONS / 2) - (STATE_STACK.length / 10),
-      color: stackColorHelper(STATE_STACK.length)
-    }
-
-    for (let index = 0; index < SENTENCE.length; index++) {
-      const letter = SENTENCE[index];
-
-      const stack_branch = STATE_STACK[STATE_STACK.length - 1];
-
-      const branch = stack_branch ? stack_branch : BASE_BRANCH;
-
-      const initialPosition = branch.points[branch.points.length - 1];
-
-      const { x: finalX, z: finalZ } = ((rotationAngle: number, length: number) => {
-        if(rotationAngle === 0) return { x: length, z: 0 };
-        if(rotationAngle === 90) return { x: 0, z: 1 };
-        if(rotationAngle === 180) return { x: -length, z: 0 };
-        if(rotationAngle === 270) return { x: 0, z: 1 };
-        
-        const z = Math.sin(rotationAngle) * length;
-        const x = Math.cos(rotationAngle) * length;
-
-        if(rotationAngle < 90) return { z, x }
-
-        if(rotationAngle < 180 && rotationAngle > 90) return { z, x: x * -1 }
-
-        if(rotationAngle < 270 && rotationAngle > 180) return { z: z * -1, x: x * -1 }
-
-        if(rotationAngle < 360 && rotationAngle > 270) return { z: z * -1, x }
-
-        return { z: z * -1, x }
-      })(branch.rotationAngle, length);
-
-      let finalPosition = {
-        x: 0,
-        y: Math.cos(branch.angle) * length + initialPosition.y,
-        z: 0
-      }
-
-      if(stack_branch) {
-        finalPosition.x = finalX + initialPosition.x;
-        finalPosition.z = finalZ + initialPosition.z;
-      }
-
-      switch(letter) {
-        case 'F': {
-          // const originPoint = new THREE.Vector3(initialPosition.x, initialPosition.y, initialPosition.z);
-          const finalPoint = new THREE.Vector3(finalPosition.x, finalPosition.y, finalPosition.z);
-
-          branch.points.push(finalPoint);
-          break;
-        }
-        case '+': {
-          branch.angle += angle;
-          break;
-        }
-        case '-': {
-          branch.angle -= angle;
-          break;
-        }
-        case '[': {
-          const a = [0, 45, 90, 135, 180, 225, 270, 315];
-
-          const branch = stack_branch ? stack_branch : BASE_BRANCH;
-          const branchLastPoint = branch.points[branch.points.length - 1];
-
-          const newBranch: Branch = {
-            ...branch,
-            id: STATE_STACK.length + 1,
-            points: [branchLastPoint],
-            rotationAngle: a[Math.floor(Math.random() * 8)],
-            width: stackSizeHelper(STATE_STACK.length),
-            color: stackColorHelper(STATE_STACK.length)
-          }
-
-          STATE_STACK.push(newBranch);
-          break;
-        }
-        case ']': {
-          const curve = new THREE.CatmullRomCurve3(STATE_STACK[STATE_STACK.length - 1].points);
-          const branchGeometry = new THREE.TubeGeometry(curve, 20, branch.width, 8, false);
-          const branchMaterial = new THREE.MeshBasicMaterial({ color: branch.color, side: THREE.DoubleSide });
-          const mesh = new THREE.Mesh(branchGeometry, branchMaterial);
-
-          scene.add(mesh)
-
-          STATE_STACK.pop();
-          break;
-        }
-      }
-    }
-
-    const curve = new THREE.CatmullRomCurve3(BASE_BRANCH.points);
-    const branchGeometry = new THREE.TubeGeometry(curve, 20, BASE_BRANCH.width, 8, false);
-    const branchMaterial = new THREE.MeshBasicMaterial({ color: BASE_BRANCH.color, side: THREE.DoubleSide });
-    const mesh = new THREE.Mesh(branchGeometry, branchMaterial);
-
-    scene.add(mesh);
-  }
-
-  Branch(new THREE.Vector3(0, -55, 0), LENGTH, BASE_ANGLE);
+  tree.grow();
   
   camera.position.z = 80;
   const gameContainer = document.querySelector('.game-container');
