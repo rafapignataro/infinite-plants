@@ -135,10 +135,12 @@ class InfinitTree {
         }
         case '+': {
           branch.angle += this.angle;
+          branch.rotationAngle += this.angle;
           break;
         }
         case '-': {
           branch.angle -= this.angle;
+          branch.rotationAngle += this.angle;
           break;
         }
         case '[': {
@@ -204,7 +206,7 @@ export const setupGame = () => {
   const controls = new OrbitControls(camera, renderer.domElement);
 
   const INITIAL_POSITION: Position = { x: 0, y: -30, z: 0 };
-  const GENERATIONS = 7;
+  const GENERATIONS = 5;
   const AXIOM = 'F';
   const BASE_ANGLE = Math.PI / 10;
   const RULES: any = { 'F': 'F[+F]F[-F][F]' };
