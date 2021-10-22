@@ -53,7 +53,7 @@ class InfinitTree {
       angle: this.angle,
       rotationAngle: 0,
       points: [new THREE.Vector3(this.initialPosition.x, initialPosition.y, initialPosition.z)],
-      width: (this.generations / 2) - (this.branches.length / 10),
+      width: (this.generations / 10) - (0.1 * this.branches.length),
       color: stackColorHelper(this.branches.length)
     }
   }
@@ -82,7 +82,6 @@ class InfinitTree {
       sentence = nextSentence;
     }
     
-    console.log('sentence', sentence)
     return sentence;
   };
 
@@ -147,13 +146,16 @@ class InfinitTree {
 
           const branch = stack_branch ? stack_branch : this.baseBranch;
           const branchLastPoint = branch.points[branch.points.length - 1];
+          
+          const random = Math.floor(Math.random() * 8)
+          const rotationAngle = a[random];
 
           const newBranch: Branch = {
             ...branch,
             id: this.branches.length + 1,
             points: [branchLastPoint],
-            rotationAngle: a[Math.floor(Math.random() * 8)],
-            width: stackSizeHelper(this.branches.length),
+            rotationAngle,
+            width: (this.generations / 10) - (0.1 * this.branches.length),
             color: stackColorHelper(this.branches.length)
           }
 
@@ -168,7 +170,6 @@ class InfinitTree {
           this.branches.pop();
           break;
         }
-        default: console.log('A')
       }
     }
 
@@ -192,17 +193,6 @@ const stackColorHelper = (number: number) => {
   }
 }
 
-const stackSizeHelper = (number: number) => {
-  switch(number) {
-    case 0: return 1;
-    case 1: return 0.8;
-    case 2: return 0.6;
-    case 3: return 0.4;
-    case 4: return 0.2;
-    default: return 0.1;
-  }
-}
-
 export const setupGame = () => {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#fff');
@@ -213,13 +203,11 @@ export const setupGame = () => {
 
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  const INITIAL_POSITION: Position = { x: 0, y: -35, z: 0 };
-  const GENERATIONS = 5;
+  const INITIAL_POSITION: Position = { x: 0, y: -30, z: 0 };
+  const GENERATIONS = 7;
   const AXIOM = 'F';
   const BASE_ANGLE = Math.PI / 10;
-  const RULES: any = {
-    'F': 'FF-[-F+F+F]+[+F-F-F]',
-  }
+  const RULES: any = { 'F': 'F[+F]F[-F][F]' };
 
   const BRANCH_SIZE = 1;
 
