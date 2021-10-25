@@ -16,13 +16,19 @@ type Position = {
   z: number;
 }
 
+type Rule = {
+  odds: number;
+  letter: string;
+  sentence: string;
+}
+
 class InfinitTree {
   private initialPosition: Position;
   private baseBranch: Branch;
   private branches: Branch[] = [];
   private axiom: string;
   private angle: number;
-  private rules: any;
+  private rules: Rule[];
   private branchSize: number;
   private sentence: string;
   private generations: number;
@@ -54,7 +60,23 @@ class InfinitTree {
       rotationAngle: 0,
       points: [new THREE.Vector3(this.initialPosition.x, initialPosition.y, initialPosition.z)],
       width: (this.generations / 10) - (0.1 * this.branches.length),
-      color: stackColorHelper(this.branches.length)
+      color: this.getBranchColor(this.branches.length)
+    }
+  }
+
+  private getBranchColor = (number: number) => {
+    switch(number) {
+      case 0: return '#53350A';
+      case 1: return '#5c3a0a';
+      case 2: return '#4c6a2f';
+      case 3: return '#618A3C';
+      case 4: return '#618A3B';
+      case 5: return '#9b59b6';
+      case 6: return 'green';
+      case 7: return 'purple';
+      case 8: return '#c0392b';
+      case 9: return 'white';
+      default: return '#fff';
     }
   }
 
@@ -76,12 +98,59 @@ class InfinitTree {
       for (let letterIndex = 0; letterIndex < sentence.length; letterIndex++) {
         const letter = sentence[letterIndex];
 
-        nextSentence += this.rules[letter] || letter;
-      }    
+        const rules = this.rules.filter(rule => rule.letter === letter);
 
+        switch(rules.length) {
+          case 0:
+            nextSentence += letter;
+            break;
+          case 1:
+            nextSentence += rules[0].sentence;
+            break;
+          default: 
+            // Multiple rules, random sentence
+            const random = Number(Math.random().toFixed(2));
+
+            let testText = '';
+            let initialRange = 0;
+            let selectedRule = null;
+
+            if(random === 1) {
+              selectedRule = rules[rules.length - 1];
+              break;
+            }
+
+            for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex++) {
+              const rule = rules[ruleIndex];
+
+              const finalRange = initialRange + rule.odds;
+
+              testText += `${initialRange}-${finalRange} `;
+
+              if(random >= initialRange && random < finalRange) {
+                selectedRule = rule;
+                break;
+              }
+              
+              initialRange = finalRange;
+            }
+
+            if(!selectedRule) {
+              console.log(testText)
+              console.log(initialRange, random)
+              console.error('Rule does not exists')
+            }
+
+            nextSentence += selectedRule.sentence;
+
+            break;
+        }
+      }    
+      
       sentence = nextSentence;
     }
-    
+
+    console.log(sentence)
     return sentence;
   };
 
@@ -158,7 +227,7 @@ class InfinitTree {
             points: [branchLastPoint],
             rotationAngle,
             width: (this.generations / 10) - (0.1 * this.branches.length),
-            color: stackColorHelper(this.branches.length)
+            color: this.getBranchColor(this.branches.length)
           }
 
           this.branches.push(newBranch);
@@ -179,22 +248,6 @@ class InfinitTree {
   };
 }
 
-const stackColorHelper = (number: number) => {
-  switch(number) {
-    case 0: return '#53350A';
-    case 1: return '#5c3a0a';
-    case 2: return '#4c6a2f';
-    case 3: return '#618A3C';
-    case 4: return '#618A3B';
-    case 5: return '#9b59b6';
-    case 6: return 'green';
-    case 7: return 'purple';
-    case 8: return '#c0392b';
-    case 9: return 'white';
-    default: return '#fff';
-  }
-}
-
 export const setupGame = () => {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#fff');
@@ -205,13 +258,16 @@ export const setupGame = () => {
 
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  const INITIAL_POSITION: Position = { x: 0, y: -30, z: 0 };
-  const GENERATIONS = 5;
+  const INITIAL_POSITION: Position = { x: 0, y: -80, z: 0 };
+  const GENERATIONS = 6;
   const AXIOM = 'F';
   const BASE_ANGLE = Math.PI / 10;
-  const RULES: any = { 'F': 'F[+F]F[-F][F]' };
-
   const BRANCH_SIZE = 1;
+  const RULES: Rule[] = [];
+
+  RULES.push({ odds: 0.4, letter: 'F', sentence: 'F[+FF]F' });
+  RULES.push({ odds: 0.3, letter: 'F', sentence: 'F[−FF]F' });
+  RULES.push({ odds: 0.3, letter: 'F', sentence: 'F[+FF+FF]+[−FF-FF]FF-' });
 
   const tree = new InfinitTree(INITIAL_POSITION, AXIOM, RULES, BASE_ANGLE, BRANCH_SIZE, GENERATIONS, scene);
 
