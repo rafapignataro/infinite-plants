@@ -258,7 +258,7 @@ export const setupGame = () => {
 
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  const INITIAL_POSITION: Position = { x: 0, y: -40, z: 0 };
+  const INITIAL_POSITION: Position = { x: 0, y: -80, z: 0 };
   const GENERATIONS = 6;
   const AXIOM = 'F';
   const BASE_ANGLE = Math.PI / 10;
@@ -273,7 +273,7 @@ export const setupGame = () => {
 
   tree.grow();
   
-  camera.position.z = 80;
+  camera.position.z = 100;
   const gameContainer = document.querySelector('.game-container');
 
   if(gameContainer) {
