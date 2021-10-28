@@ -10,12 +10,17 @@ const Home: NextPage = () => {
   }, []);
 
   return (
-    <div className="game-container">
+    <>
       <Head>
         <title>Infinite Plants</title>
       </Head>
-      <h1>INFINITE PLANTS</h1>
-    </div>
+      <div className="container">
+        <h1>INFINITE PLANTS</h1>
+        <div className="game-container">
+          
+        </div>
+      </div>
+    </>
   )
 }
 

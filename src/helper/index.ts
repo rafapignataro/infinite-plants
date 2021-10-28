@@ -59,31 +59,28 @@ class InfinitTree {
       angle: this.angle,
       rotationAngle: 0,
       points: [new THREE.Vector3(this.initialPosition.x, initialPosition.y, initialPosition.z)],
-      width: (this.generations / 10) - (0.1 * this.branches.length),
+      width: (this.generations / 5) - (0.1 * this.branches.length),
       color: this.getBranchColor(this.branches.length)
     }
   }
 
   private getBranchColor = (number: number) => {
-    switch(number) {
-      case 0: return '#53350A';
-      case 1: return '#5c3a0a';
-      case 2: return '#4c6a2f';
-      case 3: return '#618A3C';
-      case 4: return '#618A3B';
-      case 5: return '#9b59b6';
-      case 6: return 'green';
-      case 7: return 'purple';
-      case 8: return '#c0392b';
-      case 9: return 'white';
-      default: return '#fff';
-    }
+    const colorsMatrix = [
+      ['#4c6a2f'],
+      ['#4c6a2f', '#618A3C'],
+      ['#53350A', '#4c6a2f', '#618A3C'],
+      ['#53350A', '#5c3a0a', '#4c6a2f', '#618A3C'],
+      ['#53350A', '#5c3a0a', '#4c6a2f', '#618A3C', '#618A3B'],
+      ['#53350A', '#5c3a0a', '#4c6a2f', '#618A3C', '#618A3B', '#9b59b6'],
+    ];
+
+    return colorsMatrix[this.generations - 1][number];
   }
 
   private drawBranch = (branch: Branch) => {
     const curve = new THREE.CatmullRomCurve3(branch.points);
-    const branchGeometry = new THREE.TubeGeometry(curve, 20, branch.width, 8, false);
-    const branchMaterial = new THREE.MeshBasicMaterial({ color: branch.color, side: THREE.DoubleSide });
+    const branchGeometry = new THREE.TubeGeometry(curve, branch.points.length * 3, branch.width, 8, false);
+    const branchMaterial = new THREE.MeshPhysicalMaterial({ color: branch.color, side: THREE.DoubleSide });
     const branchMesh = new THREE.Mesh(branchGeometry, branchMaterial);
 
     this.scene.add(branchMesh);
@@ -236,7 +233,7 @@ class InfinitTree {
         case ']': {
           const branch = this.branches[this.branches.length - 1];
 
-          this.drawBranch(branch);
+          setTimeout(() => this.drawBranch(branch), 100);
 
           this.branches.pop();
           break;
@@ -249,32 +246,50 @@ class InfinitTree {
 }
 
 export const setupGame = () => {
+  const gameContainer = document.querySelector('.game-container');
+
+  if(!gameContainer) return;
+
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#fff');
   const camera = new THREE.PerspectiveCamera(70, 1280/720, 1, 1000);
 
   const renderer = new THREE.WebGLRenderer();
-  renderer.setSize(1200, 720);
+  renderer.setSize(gameContainer.clientWidth, gameContainer?.clientHeight);
 
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  const INITIAL_POSITION: Position = { x: 0, y: -80, z: 0 };
-  const GENERATIONS = 6;
+  const GENERATIONS = 4;
   const AXIOM = 'F';
   const BASE_ANGLE = Math.PI / 10;
   const BRANCH_SIZE = 1;
+  const INITIAL_POSITION: Position = { x: 0, y: (GENERATIONS * -GENERATIONS), z: 0 };
   const RULES: Rule[] = [];
 
   RULES.push({ odds: 0.4, letter: 'F', sentence: 'F[+FF]F' });
   RULES.push({ odds: 0.3, letter: 'F', sentence: 'F[−FF]F' });
   RULES.push({ odds: 0.3, letter: 'F', sentence: 'F[+FF+FF]+[−FF-FF]FF-' });
 
-  const tree = new InfinitTree(INITIAL_POSITION, AXIOM, RULES, BASE_ANGLE, BRANCH_SIZE, GENERATIONS, scene);
+  const floorMesh = new THREE.Mesh(
+    new THREE.CircleGeometry(20, 10),
+    new THREE.ShadowMaterial({ transparent: false, color: '#6ab04c', side: THREE.DoubleSide })
+  );
+  
+  floorMesh.position.y = (GENERATIONS * -GENERATIONS);
+  floorMesh.rotation.x -= Math.PI / 2;
+  floorMesh.receiveShadow = true;
+  scene.add(floorMesh);
+
+  const tree = new InfinitTree(INITIAL_POSITION, AXIOM, RULES, BASE_ANGLE, BRANCH_SIZE, GENERATIONS, scene );
 
   tree.grow();
+
+  const light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+  light.position.set(0, 10, 0);
+  scene.add( light );
   
-  camera.position.z = 100;
-  const gameContainer = document.querySelector('.game-container');
+  camera.position.z = 15 * (GENERATIONS * 1);
+  camera.position.y = 0;
 
   if(gameContainer) {
     gameContainer.innerHTML = '';

@@ -22,16 +22,24 @@ a {
   text-decoration: none;
 }
 
-.game-container {
+.container {
   height: 100%;
+  width: 100%;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+  position: relative;
 }
 
-.game-container h1 {
+.container h1 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+
+  position: absolute;
+  left: 10%;
+  top: 10%;
 }
+
+.game-container {
+  height: 100%;
+  width: 100%;
+}
+
