@@ -30,7 +30,6 @@ class InfinitTree {
   private angle: number;
   private rules: Rule[];
   private branchSize: number;
-  private sentence: string;
   private generations: number;
   private scene: THREE.Scene;
   private sentences: { sentence: string, current: number }[] = [];
