@@ -29,13 +29,31 @@ a {
   position: relative;
 }
 
-.container h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+.container 
 
+.controller-container {
   position: absolute;
-  left: 10%;
-  top: 10%;
+  top: 1rem;
+  left: 1rem;
+
+  padding: 1rem;
+
+  background: #fff;
+  border-radius: 5px;
+}
+
+.controller-container hr {
+  margin: 0.5rem 0;
+  border: 1px solid #ddd;
+}
+
+.controller-container h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.controller-container h2 { 
+  font-size: 1.25rem;
 }
 
 .game-container {
