@@ -56,6 +56,33 @@ a {
   font-size: 1.25rem;
 }
 
+.controller-topic {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.controller-container input[type="range"] {
+  width: 100%;
+}
+
+.controller-container button {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 0;
+  background-color: #0075ff;
+  border-radius: 5px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s
+}
+
+
+.controller-container button:hover {
+  background-color: #0263d1;
+}
+
+
 .game-container {
   height: 100%;
   width: 100%;

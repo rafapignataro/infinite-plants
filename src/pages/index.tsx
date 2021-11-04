@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useState } from 'react';
 
-import { createPlantScene, generateSentence } from '../helper/infinitePlant';
+import { createPlantScene, generateSentence, NewPlantProps, createPlant, PlantProps } from '../helper/Plant';
 
 type Rule = {
   odds: number;
@@ -10,54 +10,32 @@ type Rule = {
   sentence: string;
 }
 
-type Plant = {
-  axiom: string,
-  rules: Rule[],
-  angle: number,
-  branchSize: number,
-  generation: number,
-  sentences: { sentence: string, current: number }[]
-}
+const RULES: Rule[] = [
+  { odds: 0.4, letter: 'F', sentence: 'F[+FF]F' },
+  { odds: 0.3, letter: 'F', sentence: 'F[−FF]F' },
+  { odds: 0.3, letter: 'F', sentence: 'F[+FF+FF]+[−FF-FF]FF-' }
+];
 
-type Branch = {
-  id: number;
-  angle: number;
-  rotationAngle: number;
-  points: THREE.Vector3[];
-  width: number;
-  color: string;
-}
-
-type Position = {
-  x: number
-  y: number;
-  z: number;
-}
-
-
-const RULES: Rule[] = [];
-RULES.push({ odds: 0.4, letter: 'F', sentence: 'F[+FF]F' });
-RULES.push({ odds: 0.3, letter: 'F', sentence: 'F[−FF]F' });
-RULES.push({ odds: 0.3, letter: 'F', sentence: 'F[+FF+FF]+[−FF-FF]FF-' });
-
-const Plant1: Plant = {
+const PLANT: NewPlantProps = {
   axiom: 'F',
   rules: RULES,
   angle: Math.PI / 10,
-  branchSize: 1,
+  branchSize: 1.5,
   generation: 0,
-  sentences: []
+  sentences: [],
+  branches: []
 }
+
+const firstPlant = createPlant(PLANT)
 
 const Home: NextPage = () => {
   const [options, setOptions] = useState({
-    wireframe: false
+    wireframe: false,
   });
-  const [plant, setPlant] = useState<Plant>(Plant1);
+  const [plant, setPlant] = useState<PlantProps>(firstPlant);
 
   useEffect(() => {
-    console.log("SENTENCES", plant.sentences)
-    createPlantScene(plant, options);
+    createPlantScene(createPlant(plant), options);
   }, [plant, options]);
 
   const handleChangeGeneration = (generation: number) => {
@@ -85,9 +63,8 @@ const Home: NextPage = () => {
       <div className="container">
         <div className="controller-container">
           <h1>Infinite Plants</h1>
-          <h2>Variables</h2>
           <hr />
-          <p>Generation: {plant.generation}</p>
+          <p className="controller-topic">Generation: {plant.generation}</p>
           <input 
             type="range" 
             min="0" 
@@ -96,7 +73,7 @@ const Home: NextPage = () => {
             value={plant.generation} 
             onChange={(event) => handleChangeGeneration(Number(event.target.value))}/>
           <hr />
-          <p>Wireframe: {plant.generation}</p>
+          <p className="controller-topic">Wireframe: {options.wireframe ? 'ON' : 'OFF'}</p>
           <input 
             type="checkbox" 
             checked={options.wireframe} 
@@ -104,6 +81,10 @@ const Home: NextPage = () => {
               ...options,
               wireframe: event.target.checked
             })}/>
+          <hr />
+          <button
+            onClick={() => setPlant(firstPlant)}
+          >NEW PLANT</button>
         </div>
         <div className="game-container">
           
