@@ -285,113 +285,113 @@ const drawPlant = (plant: PlantProps, options: any, scene: THREE.Scene) => {
   // plant.branches.forEach((branch, index) => drawBranch(branch, index));
 
 
-  const grow = (letter: string) => {
-    const stackBranch = branchesStack[branchesStack.length - 1];
+  // const grow = (letter: string) => {
+  //   const stackBranch = branchesStack[branchesStack.length - 1];
 
-    const branch = stackBranch ? stackBranch : plant.baseBranch;
+  //   const branch = stackBranch ? stackBranch : plant.baseBranch;
 
-    const initialPosition = branch.points[branch.points.length - 1];
+  //   const initialPosition = branch.points[branch.points.length - 1];
 
-    const { x: finalX, z: finalZ } = ((rotationAngle: number, length: number) => {
-      if(rotationAngle === 0) return { x: length, z: 0 };
-      if(rotationAngle === 90) return { x: 0, z: 1 };
-      if(rotationAngle === 180) return { x: -length, z: 0 };
-      if(rotationAngle === 270) return { x: 0, z: 1 };
+  //   const { x: finalX, z: finalZ } = ((rotationAngle: number, length: number) => {
+  //     if(rotationAngle === 0) return { x: length, z: 0 };
+  //     if(rotationAngle === 90) return { x: 0, z: 1 };
+  //     if(rotationAngle === 180) return { x: -length, z: 0 };
+  //     if(rotationAngle === 270) return { x: 0, z: 1 };
       
-      const z = Math.sin(rotationAngle) * length;
-      const x = Math.cos(rotationAngle) * length;
+  //     const z = Math.sin(rotationAngle) * length;
+  //     const x = Math.cos(rotationAngle) * length;
 
-      if(rotationAngle < 90) return { z, x }
+  //     if(rotationAngle < 90) return { z, x }
 
-      if(rotationAngle >= 90 && rotationAngle < 180) return { z, x: x * -1 }
+  //     if(rotationAngle >= 90 && rotationAngle < 180) return { z, x: x * -1 }
 
-      if(rotationAngle >= 180 && rotationAngle < 270) return { z: z * -1, x: x * -1 }
+  //     if(rotationAngle >= 180 && rotationAngle < 270) return { z: z * -1, x: x * -1 }
 
-      if(rotationAngle >= 270 && rotationAngle < 360) return { z: z * -1, x }
+  //     if(rotationAngle >= 270 && rotationAngle < 360) return { z: z * -1, x }
 
-      return { z: z * -1, x }
-    })(branch.rotationAngle, plant.branchSize);
+  //     return { z: z * -1, x }
+  //   })(branch.rotationAngle, plant.branchSize);
 
-    let finalPosition = {
-      x: 0,
-      y: Math.cos(branch.angle) * plant.branchSize + initialPosition.y,
-      z: 0
-    }
+  //   let finalPosition = {
+  //     x: 0,
+  //     y: Math.cos(branch.angle) * plant.branchSize + initialPosition.y,
+  //     z: 0
+  //   }
 
-    if(stackBranch) {
-      finalPosition.x = finalX + initialPosition.x;
-      finalPosition.z = finalZ + initialPosition.z;
-    }
+  //   if(stackBranch) {
+  //     finalPosition.x = finalX + initialPosition.x;
+  //     finalPosition.z = finalZ + initialPosition.z;
+  //   }
 
-    switch(letter) {
-      case 'F': {
-        const finalPoint = new THREE.Vector3(finalPosition.x, finalPosition.y, finalPosition.z);
-        branch.points.push(finalPoint);
+  //   switch(letter) {
+  //     case 'F': {
+  //       const finalPoint = new THREE.Vector3(finalPosition.x, finalPosition.y, finalPosition.z);
+  //       branch.points.push(finalPoint);
 
-        const geometry = new THREE.SphereGeometry(0.1, 32, 16 );
-        const material = new THREE.MeshPhysicalMaterial({ color: '#ff4757' });
-        const sphere = new THREE.Mesh(geometry, material);
-        sphere.position.set(finalPoint.x, finalPoint.y, finalPoint.z)
-        scene.add(sphere);     
+  //       const geometry = new THREE.SphereGeometry(0.1, 32, 16 );
+  //       const material = new THREE.MeshPhysicalMaterial({ color: '#ff4757' });
+  //       const sphere = new THREE.Mesh(geometry, material);
+  //       sphere.position.set(finalPoint.x, finalPoint.y, finalPoint.z)
+  //       scene.add(sphere);     
         
-        break;
-      }
-      case '+': {
-        branch.angle += plant.angle;
-        break;
-      }
-      case '-': {
-        branch.angle -= plant.angle;
-        break;
-      }
-      case '<': {
-        branch.rotationAngle += plant.angle;
-        break;
-      }
-      case '>': {
-        branch.rotationAngle += plant.angle;
-        break;
-      }
-      case '[': {
-        const branch = stackBranch ? stackBranch : plant.baseBranch;
-        const branchLastPoint = branch.points[branch.points.length - 1];
+  //       break;
+  //     }
+  //     case '+': {
+  //       branch.angle += plant.angle;
+  //       break;
+  //     }
+  //     case '-': {
+  //       branch.angle -= plant.angle;
+  //       break;
+  //     }
+  //     case '<': {
+  //       branch.rotationAngle += plant.angle;
+  //       break;
+  //     }
+  //     case '>': {
+  //       branch.rotationAngle += plant.angle;
+  //       break;
+  //     }
+  //     case '[': {
+  //       const branch = stackBranch ? stackBranch : plant.baseBranch;
+  //       const branchLastPoint = branch.points[branch.points.length - 1];
 
-        const random = Math.floor(Math.random() * 2) ? 1 : -1;
+  //       const random = Math.floor(Math.random() * 2) ? 1 : -1;
 
-        const lastBranchRotationAngle = stackBranch ? stackBranch.rotationAngle + (((Math.random() * plant.angle) + plant.angle * 1.5) * random) : Math.floor(Math.random() * 360)
+  //       const lastBranchRotationAngle = stackBranch ? stackBranch.rotationAngle + (((Math.random() * plant.angle) + plant.angle * 1.5) * random) : Math.floor(Math.random() * 360)
         
-        const newBranch: Branch = {
-          ...branch,
-          points: [branchLastPoint],
-          rotationAngle: lastBranchRotationAngle,
-          width: (plant.generation / 10) - (0.1 * branchesStack.length),
-          color: getBranchColor(plant.generation, branchesStack.length)
-        }
+  //       const newBranch: Branch = {
+  //         ...branch,
+  //         points: [branchLastPoint],
+  //         rotationAngle: lastBranchRotationAngle,
+  //         width: (plant.generation / 10) - (0.1 * branchesStack.length),
+  //         color: getBranchColor(plant.generation, branchesStack.length)
+  //       }
 
-        branchesStack.push(newBranch);
-        break;
-      }
-      case ']': {
-        const branch = branchesStack[branchesStack.length - 1];
+  //       branchesStack.push(newBranch);
+  //       break;
+  //     }
+  //     case ']': {
+  //       const branch = branchesStack[branchesStack.length - 1];
 
-        drawBranch(branch); 
-        // if(plant.generation > 4 && (branch.color === '#4c6a2f' || branch.color === '#618A3C' || branch.color === '#618A3B')) {
-        //   const colors = ['#B53471', '#618A3C']
-        //   const geometry = new THREE.SphereGeometry(plant.generation * 0.15, 32, 16 );
-        //   const material = new THREE.MeshPhysicalMaterial({ color: colors[Math.floor(Math.random() * colors.length)] });
-        //   const sphere = new THREE.Mesh(geometry, material);
-        //   const spherePosition = branch.points[branch.points.length - 1];
-        //   sphere.position.set(spherePosition.x, spherePosition.y, spherePosition.z)
-        //   scene.add(sphere);       
-        // }
+  //       drawBranch(branch); 
+  //       // if(plant.generation > 4 && (branch.color === '#4c6a2f' || branch.color === '#618A3C' || branch.color === '#618A3B')) {
+  //       //   const colors = ['#B53471', '#618A3C']
+  //       //   const geometry = new THREE.SphereGeometry(plant.generation * 0.15, 32, 16 );
+  //       //   const material = new THREE.MeshPhysicalMaterial({ color: colors[Math.floor(Math.random() * colors.length)] });
+  //       //   const sphere = new THREE.Mesh(geometry, material);
+  //       //   const spherePosition = branch.points[branch.points.length - 1];
+  //       //   sphere.position.set(spherePosition.x, spherePosition.y, spherePosition.z)
+  //       //   scene.add(sphere);       
+  //       // }
 
-        plant.branches.push(branch);
+  //       plant.branches.push(branch);
 
-        branchesStack.pop();
-        break;
-      }
-    }
-  }
+  //       branchesStack.pop();
+  //       break;
+  //     }
+  //   }
+  // }
 }
 
 export const createPlantScene = (plant: PlantProps, options: any) => {
