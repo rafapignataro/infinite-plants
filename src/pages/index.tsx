@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect, useState } from 'react';
 
-import { createPlantScene, generateSentence, NewPlantProps, createPlant, PlantProps } from '../helper/Plant';
+import { createPlantScene, NewPlantProps, createPlant, PlantProps } from '../helper/Plant';
 
 type Rule = {
   odds: number;
@@ -19,11 +19,12 @@ const RULES: Rule[] = [
 const PLANT: NewPlantProps = {
   axiom: 'F',
   rules: RULES,
-  angle: Math.PI / 10,
-  branchSize: 1.5,
+  angle: Math.PI / 13,
+  branchSize: 1,
   generation: 0,
   sentences: [],
-  branches: []
+  branches: [],
+  grownUp: 0
 }
 
 const firstPlant = createPlant(PLANT)
@@ -34,25 +35,12 @@ const Home: NextPage = () => {
   });
   const [plant, setPlant] = useState<PlantProps>(firstPlant);
 
-  useEffect(() => {
-    createPlantScene(createPlant(plant), options);
-  }, [plant, options]);
+  const handleChangeGrownUp = (grownUp: number) => {
+    setPlant({ ...plant, grownUp });
+  }
 
-  const handleChangeGeneration = (generation: number) => {
-    let sentences = plant.sentences;
-
-    if(generation > sentences.length) {
-
-      const newSentence = generateSentence(plant);
-
-      sentences.push(newSentence);
-    }
-
-    setPlant({
-      ...plant,
-      sentences,
-      generation,
-    })
+  const handleGrowButton = () => {
+    createPlantScene(plant, options);
   }
 
   return (
@@ -64,14 +52,14 @@ const Home: NextPage = () => {
         <div className="controller-container">
           <h1>Infinite Plants</h1>
           <hr />
-          <p className="controller-topic">Generation: {plant.generation}</p>
+          <p className="controller-topic">Grown up: {plant.grownUp}</p>
           <input 
             type="range" 
             min="0" 
-            max="5" 
-            step="1"
-            value={plant.generation} 
-            onChange={(event) => handleChangeGeneration(Number(event.target.value))}/>
+            max="100" 
+            step="0.01"
+            value={plant.grownUp} 
+            onChange={(event) => handleChangeGrownUp(Number(event.target.value))}/>
           <hr />
           <p className="controller-topic">Wireframe: {options.wireframe ? 'ON' : 'OFF'}</p>
           <input 
@@ -82,9 +70,7 @@ const Home: NextPage = () => {
               wireframe: event.target.checked
             })}/>
           <hr />
-          <button
-            onClick={() => setPlant(firstPlant)}
-          >NEW PLANT</button>
+          <button onClick={handleGrowButton}>GROW</button>
         </div>
         <div className="game-container">
           
