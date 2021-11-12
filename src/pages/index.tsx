@@ -11,8 +11,8 @@ type Rule = {
 }
 
 const RULES: Rule[] = [
-  { odds: 0.4, letter: 'F', sentence: 'F[+FF]F' },
-  { odds: 0.3, letter: 'F', sentence: 'F[−FF]F' },
+  { odds: 0.4, letter: 'F', sentence: 'F[+F+F]F' },
+  { odds: 0.3, letter: 'F', sentence: 'F[−F-F]F' },
   { odds: 0.3, letter: 'F', sentence: 'F[+FF+FF]+[−FF-FF]FF-' }
 ];
 
@@ -34,6 +34,8 @@ const Home: NextPage = () => {
     wireframe: false,
   });
   const [plant, setPlant] = useState<PlantProps>(firstPlant);
+
+  useEffect(() => createPlantScene(plant, options), [])
 
   const handleChangeGrownUp = (grownUp: number) => {
     setPlant({ ...plant, grownUp });

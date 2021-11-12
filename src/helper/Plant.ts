@@ -13,6 +13,7 @@ type Branch = {
   points: Position[];
   width: number;
   color: string;
+  depth: number;
 }
 
 type Rule = {
@@ -134,12 +135,12 @@ const getPlantBranches = (plant: PlantProps) => {
   const { sentence } = plant.sentences[plant.generation - 1] || { sentence: 'F', current: 0 };
 
   for(let letterIndex = 0; letterIndex < sentence.length; letterIndex++) {
-    const letter = sentence[letterIndex];
     const stackBranch = branchesStack[branchesStack.length - 1];
 
     const branch = stackBranch ? stackBranch : plant.baseBranch;
 
     const initialPosition = branch.points[branch.points.length - 1];
+
 
     const { x: finalX, z: finalZ } = ((rotationAngle: number, length: number) => {
       if(rotationAngle === 0) return { x: length, z: 0 };
@@ -162,8 +163,8 @@ const getPlantBranches = (plant: PlantProps) => {
     })(branch.rotationAngle, plant.branchSize);
 
     let finalPosition = {
-      x: 0,
       y: Math.cos(branch.angle) * plant.branchSize + initialPosition.y,
+      x: 0,
       z: 0
     }
 
@@ -171,6 +172,8 @@ const getPlantBranches = (plant: PlantProps) => {
       finalPosition.x = finalX + initialPosition.x;
       finalPosition.z = finalZ + initialPosition.z;
     }
+
+    const letter = sentence[letterIndex];
 
     switch(letter) {
       case 'F': {
@@ -203,11 +206,12 @@ const getPlantBranches = (plant: PlantProps) => {
         const lastBranchRotationAngle = stackBranch ? stackBranch.rotationAngle + (((Math.random() * plant.angle) + plant.angle * 1.5) * random) : Math.floor(Math.random() * 360)
         
         const newBranch: Branch = {
-          ...branch,
-          points: [branchLastPoint],
+          angle: branch.angle,
           rotationAngle: lastBranchRotationAngle,
+          points: [branchLastPoint],
           width: (plant.generation / 10) - (0.1 * branchesStack.length),
-          color: getBranchColor(plant.generation, branchesStack.length)
+          color: getBranchColor(plant.generation, branchesStack.length),
+          depth: branchesStack.length
         }
 
         branchesStack.push(newBranch);
@@ -224,6 +228,14 @@ const getPlantBranches = (plant: PlantProps) => {
     }
   }
 
+  branches.sort((branchA: Branch, branchB: Branch) => {
+    if (branchA.depth < branchB.depth) return -1;
+
+    if (branchA.depth > branchB.depth) return 1;
+
+    return 0;
+  });
+
   return branches;
 }
 
@@ -233,13 +245,15 @@ export const createPlant = (newPlant: NewPlantProps) => {
   // Create base plant
   const plant: PlantProps = {
     ...newPlant,
+    branchSize: 1.5, 
     generation: generation,
     baseBranch: {
       angle: newPlant.angle,
       rotationAngle: 0,
       points: [{ x: 0, y: 0, z: 0 }],
       width: (generation / 4),
-      color: getBranchColor(generation, 0)
+      color: getBranchColor(generation, 0),
+      depth: 0,
     }
   }
 
@@ -259,19 +273,30 @@ export const createPlant = (newPlant: NewPlantProps) => {
 }
 
 const drawPlant = (plant: PlantProps, options: any, scene: THREE.Scene) => {
-  const branchesStack: Branch[] = [];
-
   const drawBranch = (branch: Branch, index: number) => {
-    const Vector3Points = branch.points.map(point => new THREE.Vector3(point.x, point.y, point.z));
+    const Vector3Points = branch.points.map(point => {
+      // drawSphere(0.3, '#eb4d4b', point);
+      return new THREE.Vector3(point.x, point.y, point.z)
+    });
 
     const curve = new THREE.CatmullRomCurve3(Vector3Points);
-    const branchGeometry = new THREE.TubeGeometry(curve, branch.points.length * 10, branch.width , 8, false);
+    const branchGeometry = new THREE.TubeBufferGeometry(curve, branch.points.length * 10, branch.width , 8, false);
+    // branchGeometry.setDrawRange(0, 3600);
     const branchMaterial = new THREE.MeshPhysicalMaterial({ color: branch.color, side: THREE.DoubleSide, wireframe: options.wireframe  });
     const branchMesh = new THREE.Mesh(branchGeometry, branchMaterial);
     branchMesh.castShadow = true;
 
-    setTimeout(() => scene.add(branchMesh), 25 * index);
+    setTimeout(() => scene.add(branchMesh), 50 * index);
     // scene.add(branchMesh);
+  }
+
+  const drawSphere = (radius: number, color: string, position: Position) => {
+    const geometry = new THREE.SphereGeometry(radius, 32, 32);
+    const material = new THREE.MeshPhysicalMaterial({ color });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.set(position.x, position.y, position.z);
+
+    scene.add(sphere);   
   }
 
   drawBranch(plant.baseBranch, 0);
@@ -399,33 +424,33 @@ export const createPlantScene = (plant: PlantProps, options: any) => {
 
   if(!gameContainer) return;
 
-  const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
-
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#74b9ff');
-
-  const GENERATION = plant.generation;
-
+  
   // GROUND
   (() => {
     const floorMesh = new THREE.Mesh(
       new THREE.CircleGeometry(2000, 10),
       new THREE.MeshPhongMaterial({ color: '#6ab04c', side: THREE.DoubleSide, depthWrite: false })
-    );
-    floorMesh.position.setY(0);
-    floorMesh.rotation.x = - Math.PI / 2;
-    floorMesh.receiveShadow = true;
-    scene.add(floorMesh);
+      );
+      floorMesh.position.setY(0);
+      floorMesh.rotation.x = - Math.PI / 2;
+      floorMesh.receiveShadow = true;
+      scene.add(floorMesh);
   })();
-
+    
   drawPlant(plant, options, scene);
-
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-  hemiLight.position.set( 0, 15, 0 );
-  scene.add(hemiLight);
   
-  camera.position.z = GENERATION * 15 + 15;
-  camera.position.y = GENERATION * 15 + 15;
+  const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x0f0e0d);
+  hemiLight.position.set(0, 15, 0);
+  scene.add(hemiLight);
+    
+  const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
+  camera.position.z = 300;
+  camera.position.y = 300;
+
+  const axesHelper = new THREE.AxesHelper( 5 );
+  scene.add(axesHelper);
 
   const renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
@@ -448,3 +473,4 @@ export const createPlantScene = (plant: PlantProps, options: any) => {
 
   animate();
 }
+
